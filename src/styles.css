@@ -7,6 +7,9 @@
   width: 80%;
   margin: 0 auto;
   overflow: hidden;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
 }
 
 .carousel-track {
@@ -35,7 +38,7 @@
 }
 
 /* メディアクエリの追加 */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .carousel-container {
     width: 95%;
   }
@@ -44,7 +47,7 @@
     height: 120px;
     font-size: 1.2rem;
   }
-}
+} */
 
 .carousel-slide img {
   max-width: 100%;

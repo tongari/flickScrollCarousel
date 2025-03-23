@@ -12,6 +12,7 @@ export const FlickScrollCarousel = ({
   const scrollLeft = useRef(0);
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
+  const animationFrameId = useRef<number>(); // 追加: アニメーションフレームID管理用
 
   // スライド画像の配列を定義
   const slides = [
@@ -59,54 +60,56 @@ export const FlickScrollCarousel = ({
     const handleMouseMove = (e: any) => {
       if (!isDragging.current) return;
       e.preventDefault();
+
+      // 前のアニメーションフレームをキャンセル
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+
       const x = e.pageX - container.offsetLeft;
-      const dx = x - startX.current;
-      // フリック量を調整（1:1の比率に）
-      container.scrollLeft = scrollLeft.current - dx;
-      startX.current = x; // 現在位置を更新
+      const dx = x - dragStartX.current;
+
+      // マウス位置に追従
+      animationFrameId.current = requestAnimationFrame(() => {
+        container.scrollLeft = scrollLeft.current - dx;
+      });
+
+      startX.current = x; // 現在位置を更新（これが必要）
     };
 
     const handleMouseUp = () => {
       isDragging.current = false;
+      const dragDistance = dragStartX.current - startX.current; // 最終位置との差分を計算
 
-      const dragDistance = startX.current - dragStartX.current;
-
-      if (Math.abs(dragDistance) < dragThreshold) {
-        container.scrollTo({
-          left: scrollLeft.current,
-          behavior: "smooth",
-        });
-        return;
-      }
-
-      const containerCenter = container.scrollLeft + container.offsetWidth / 2;
-      let closestSlide: any = null;
-      let minDistance = Infinity;
-
-      slides.forEach((slide: any) => {
-        const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
-        const distance = Math.abs(slideCenter - containerCenter);
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestSlide = slide;
-        }
-      });
-
-      if (closestSlide) {
-        const slideWidth = closestSlide.offsetWidth;
+      requestAnimationFrame(() => {
+        const slideWidth = slides[0].offsetWidth;
         const currentIndex = Math.round(container.scrollLeft / slideWidth);
         let targetIndex = currentIndex;
 
-        // ドラッグ方向に基づいてインデックスを調整
-        if (dragDistance < 0 && currentIndex < slides.length - 1) {
-          targetIndex = currentIndex + 1;
-        } else if (dragDistance > 0 && currentIndex > 0) {
-          targetIndex = currentIndex - 1;
+        if (Math.abs(dragDistance) > dragThreshold * 0.7) {
+          if (dragDistance > 0 && currentIndex < slides.length - 1) {
+            // 左方向へのドラッグ（次へ）
+            targetIndex = currentIndex + 1;
+          } else if (dragDistance < 0 && currentIndex > 0) {
+            // 右方向へのドラッグ（前へ）
+            targetIndex = currentIndex - 1;
+          }
         }
 
+        // デバッグ用のログ
+        // console.log({
+        //   dragDistance,
+        //   currentIndex,
+        //   targetIndex,
+        //   slideLength: slides.length,
+        // });
+
         const targetScrollLeft = targetIndex * slideWidth;
-        container.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
-      }
+        container.scrollTo({
+          left: targetScrollLeft,
+          behavior: "smooth",
+        });
+      });
     };
 
     container.addEventListener("mousedown", handleMouseDown);
@@ -122,13 +125,31 @@ export const FlickScrollCarousel = ({
       scrollLeft.current = container.scrollLeft;
     };
 
+    // タッチ操作時のスクロール防止用関数を追加
+    const preventDefault = (e: TouchEvent) => {
+      e.preventDefault();
+    };
+
+    // コンポーネントマウント時にタッチムーブのデフォルト動作を無効化
+    container.addEventListener("touchmove", preventDefault, { passive: false });
+
     const handleTouchMove = (e: TouchEvent) => {
       if (!isDragging.current) return;
       e.preventDefault();
+      e.stopPropagation();
+
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+
       const x = e.touches[0].pageX - container.offsetLeft;
-      const dx = x - startX.current;
-      container.scrollLeft = scrollLeft.current - dx;
-      startX.current = x;
+      const dx = x - dragStartX.current;
+
+      animationFrameId.current = requestAnimationFrame(() => {
+        container.scrollLeft = scrollLeft.current - dx;
+      });
+
+      startX.current = x; // 現在位置を更新（これが必要）
     };
 
     const handleTouchEnd = () => {
@@ -153,11 +174,25 @@ export const FlickScrollCarousel = ({
       container.removeEventListener("touchmove", handleTouchMove);
       container.removeEventListener("touchend", handleTouchEnd);
       container.removeEventListener("touchcancel", handleTouchEnd);
+
+      // クリーンアップ時にアニメーションフレームをキャンセル
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+
+      container.removeEventListener("touchmove", preventDefault);
     };
   }, [dragThreshold]);
 
   return (
-    <div className="carousel-container scroll" ref={containerRef}>
+    <div
+      className="carousel-container scroll"
+      ref={containerRef}
+      style={{
+        touchAction: "none", // タッチ操作のデフォルト動作を無効化
+        WebkitOverflowScrolling: "touch", // iOSでのスクロールを滑らかに
+      }}
+    >
       <div className="carousel-track">
         {slides.map((slide, index) => (
           <div className="carousel-slide" key={index}>
