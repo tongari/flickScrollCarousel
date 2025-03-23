@@ -59,6 +59,7 @@ export const FlickScrollCarousel = ({
 
     const handleMouseMove = (e: any) => {
       if (!isDragging.current) return;
+
       e.preventDefault();
 
       // 前のアニメーションフレームをキャンセル
@@ -77,9 +78,15 @@ export const FlickScrollCarousel = ({
       startX.current = x; // 現在位置を更新（これが必要）
     };
 
+    const handleMouseLeave = () => {
+      if (!isDragging.current) return;
+      handleMouseUp(); // 領域外に出た時もスライド処理を完了させる
+    };
+
     const handleMouseUp = () => {
+      if (!isDragging.current) return;
       isDragging.current = false;
-      const dragDistance = dragStartX.current - startX.current; // 最終位置との差分を計算
+      const dragDistance = dragStartX.current - startX.current;
 
       requestAnimationFrame(() => {
         const slideWidth = slides[0].offsetWidth;
@@ -115,7 +122,7 @@ export const FlickScrollCarousel = ({
     container.addEventListener("mousedown", handleMouseDown);
     container.addEventListener("mousemove", handleMouseMove);
     container.addEventListener("mouseup", handleMouseUp);
-    container.addEventListener("mouseleave", handleMouseUp);
+    container.addEventListener("mouseleave", handleMouseLeave);
 
     // タッチイベントのハンドラーを追加
     const handleTouchStart = (e: TouchEvent) => {
@@ -135,6 +142,7 @@ export const FlickScrollCarousel = ({
 
     const handleTouchMove = (e: TouchEvent) => {
       if (!isDragging.current) return;
+
       e.preventDefault();
       e.stopPropagation();
 
@@ -157,23 +165,28 @@ export const FlickScrollCarousel = ({
       handleMouseUp(); // 既存のマウスアップハンドラーを再利用
     };
 
+    const handleTouchCancel = () => {
+      if (!isDragging.current) return;
+      handleMouseUp(); // 領域外に出た時もスライド処理を完了させる
+    };
+
     // タッチイベントリスナーを追加
     container.addEventListener("touchstart", handleTouchStart);
     container.addEventListener("touchmove", handleTouchMove);
     container.addEventListener("touchend", handleTouchEnd);
-    container.addEventListener("touchcancel", handleTouchEnd);
+    container.addEventListener("touchcancel", handleTouchCancel);
 
     return () => {
       container.removeEventListener("mousedown", handleMouseDown);
       container.removeEventListener("mousemove", handleMouseMove);
       container.removeEventListener("mouseup", handleMouseUp);
-      container.removeEventListener("mouseleave", handleMouseUp);
+      container.removeEventListener("mouseleave", handleMouseLeave);
 
       // タッチイベントリスナーの削除
       container.removeEventListener("touchstart", handleTouchStart);
       container.removeEventListener("touchmove", handleTouchMove);
       container.removeEventListener("touchend", handleTouchEnd);
-      container.removeEventListener("touchcancel", handleTouchEnd);
+      container.removeEventListener("touchcancel", handleTouchCancel);
 
       // クリーンアップ時にアニメーションフレームをキャンセル
       if (animationFrameId.current) {
