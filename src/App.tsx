@@ -10,14 +10,34 @@ export default function App() {
       <h1>ScrollCarousel</h1>
       <div>
         <p>カルーセルの数: {carouselCount}</p>
-        <button onClick={() => setCarouselCount((prev) => prev + 1)}>
-          追加
-        </button>
-        <button
-          onClick={() => setCarouselCount((prev) => Math.max(1, prev - 1))}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "20px",
+          }}
         >
-          削除
-        </button>
+          <button
+            onClick={() => setCarouselCount((prev) => prev + 1)}
+            style={{
+              padding: "10px 20px",
+              fontSize: "16px",
+              cursor: "pointer",
+            }}
+          >
+            追加
+          </button>
+          <button
+            onClick={() => setCarouselCount((prev) => Math.max(1, prev - 1))}
+            style={{
+              padding: "10px 20px",
+              fontSize: "16px",
+              cursor: "pointer",
+            }}
+          >
+            削除
+          </button>
+        </div>
       </div>
       {Array.from({ length: carouselCount }).map((_, index) => (
         <div key={index} style={{ marginTop: "20px" }}>
