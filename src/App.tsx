@@ -1,6 +1,7 @@
 import { FlickScrollCarousel } from "./FlickScrollCarousel";
 import { useState } from "react";
 import "./styles.css";
+import { ScrollCarousel } from "./ScrollCarousel";
 
 export default function App() {
   const [carouselCount, setCarouselCount] = useState(1);
@@ -8,6 +9,7 @@ export default function App() {
   return (
     <div className="App">
       <h1>ScrollCarousel</h1>
+      <ScrollCarousel />
       <div>
         <p>カルーセルの数: {carouselCount}</p>
         <select
