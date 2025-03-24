@@ -16,12 +16,12 @@ export const FlickScrollCarousel = ({
 
   // スライド画像の配列を定義
   const slides = [
-    { src: "/img/1114_water_hamon_9514.jpg", alt: "スライド1" },
+    { src: "/img/beautiful-rainbow-nature.jpg", alt: "スライド1" },
     {
       src: "/img/aerial-shot-megapolis-with-illuminated-high-buildings.jpg",
       alt: "スライド2",
     },
-    { src: "/img/beautiful-rainbow-nature.jpg", alt: "スライド3" },
+    { src: "/img/1114_water_hamon_9514.jpg", alt: "スライド3" },
     {
       src: "/img/pexels-ryutaro-tsukata-6249250.jpeg",
       alt: "スライド4",
